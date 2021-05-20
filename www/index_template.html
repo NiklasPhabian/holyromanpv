@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <title>
+            The HolyRomanPV
+        </title>
+    </head>
+    <body>
+        <h1>HolyRomanPV</h1>
+
+        <h2>Current Power</h2>         
+        {power} W (updated at {timestamp})
+        
+        <h2>Avg daily production</h2> 
+        {avg_day_prod} kWh 
+        
+        <h2>Avg daily cons before PV (2020-02-01)</h2>         
+        {avg_day_cons_before} kWh 
+        
+        <h2>Avg daily cons after PV (2020-02-01)</h2>         
+        {avg_day_cons_after} kWh
+        
+        <h2>Self Consumption Rate</h2>
+        {self_cons} %
+        
+        <h2> Production</h2>
+        <img src="production.svg" width=80%>
+
+        <h2> Daily Production </h2>
+        <img src="days.svg" width=80%>
+        
+        <h2> Monthly Production </h2>
+        <img src="months.svg" width=80%>
+    
+        <h2> Average Production and Consumption </h2>
+        <img src="avg_prodcons.svg" width=80%>
+        
+        <h2> Monthly Comparison </h2>
+        <img src="months_comparison.svg" width=80%>
+
+        <h2> Production and Consumption </h2>
+        Latest data: {sce_timestamp}
+        <img src="prodcons.svg" width=80%>
+        
+        <h2> Consumption history </h2>
+        Latest data: {sce_timestamp}
+        <img src="consumption.svg" width=80%>
+        
+        <h2> System</h2>
+        <center>
+            <img src="system_reduced.png" width=90%>
+        </center>
+
+    </body>
+</html>
