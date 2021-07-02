@@ -152,7 +152,7 @@ class SceTable(DBTable):
         self.database.cursor.execute(query)
         ret = self.database.cursor.fetchone()
         #latest_entry = datetime.datetime.strptime(ret[0], '%Y-%m-%d %H:%M:%S')
-        return ret
+        return ret[0]
     
     def earliest_entry(self):
         query = 'SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1'

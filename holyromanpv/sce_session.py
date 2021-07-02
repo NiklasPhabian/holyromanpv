@@ -82,9 +82,15 @@ class SCESession:
     def get_headers_attempt(self):     
         self.close_popup()
         self.driver.find_element_by_id('ThisPeriod').click()        
+        time.sleep(1)
+        self.close_popup()
+        self.driver.find_element_by_id('Hourly').click()
+        time.sleep(1)
+        self.close_popup()
+        #self.driver.find_element_by_id('openCalender').click()
         time.sleep(10)
         for request in self.driver.requests:
-            if 'https://prodms.dms.sce.com/myaccount/v1/usage' in request.url and 'oktaUid' in request.headers:        
+            if 'https://prodms.dms.sce.com/myaccount/v1/usage' in request.url:# and 'oktaUid' in request.headers:        
                 self.headers = dict(request.headers)
         
     def make_requests_session(self):
@@ -125,8 +131,7 @@ class SCESession:
             n_tries += 1
             if n_tries > 5:
                 self.logout()
-                self.quit()        
-                quit()
+                self.quit()                        
         return data   
     
     

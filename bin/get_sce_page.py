@@ -5,11 +5,10 @@ import datetime
 import os
 
 home = os.path.expanduser("~")
-config_loc = home + '/holyromanpv/data/config.ini'
+config_loc = home + '/Dropbox/projects/holyromanpv/data/config.ini'
 config_file = holyromanpv.config.get_config(config_loc)
 
-db_path = config_file['sqlite']['dbpath']
-
+#db_path = config_file['sqlite']['dbpath']
 #db = holyromanpv.database.SQLiteDatabase(db_path)
 db = holyromanpv.database.PostgresDatabase(config_loc, 'postgres')
 sce_table = holyromanpv.database.SceTable(db)
@@ -24,6 +23,7 @@ if __name__ == '__main__':
                                      password=password,
                                      account=account,
                                      contract=contract)
+    
     print('stared driver')
     logged_in = session.login()
 
