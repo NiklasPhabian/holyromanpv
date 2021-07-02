@@ -10,7 +10,8 @@ config_file = holyromanpv.config.get_config(config_loc)
 db_path = config_file['sqlite']['dbpath']
 www_folder = config_file['www']['folder']
 
-db = holyromanpv.database.SQLiteDatabase(db_path)
+#db = holyromanpv.database.SQLiteDatabase(db_path)
+db = holyromanpv.database.PostgresDatabase(config_loc, 'postgres')
 solar_table = holyromanpv.database.SolarTable(db)
 sce_table = holyromanpv.database.SceTable(db)
 
@@ -19,7 +20,7 @@ sce_timestamp = sce_table.latest_entry()
 
 power = round(power*10)/10
 day_tab = holyromanpv.database.DBTable(db)
-avg_day_prod = day_tab.get_value('SELECT avg(energy) FROM day')
+avg_day_prod = day_tab.get_value('SELECT avg(energy) FROM pv_daily')
 avg_day_prod = round(avg_day_prod * 100)/100
 
 avg_day_cons_before = sce_table.avg_daily('2019-04-01', '2020-02-01')[0]

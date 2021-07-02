@@ -2,6 +2,8 @@ import sqlite3
 import pandas
 import sqlalchemy
 import datetime
+import configparser
+import psycopg2
 
 
 class Database:
@@ -19,6 +21,7 @@ class SQLiteDatabase(Database):
         self.cursor = self.connection.cursor()
         self.uri = 'sqlite:///{db_path}'.format(db_path=db_path)
         self.db_type = 'sqlite'
+        self.placeholder = '?'
         self.engine = sqlalchemy.create_engine(self.uri)
         
         
@@ -35,19 +38,20 @@ class PostgresDatabase(Database):
         self.db_name = None
         self.uri = None
         self.load_config(config_file, config_name)
-        self.connect()
         self.db_type = 'postgres'
         self.placeholder = '%s'
         self.bool_function = 'BOOL'
+        self.connect()
+        self.engine = sqlalchemy.create_engine(self.uri)
 
     def load_config(self, config_file, config_name):
         config = configparser.ConfigParser(allow_no_value=True)
         config.optionxform = str
         config.read(config_file)
         self.host = config[config_name]['host']
-        self.user = config[config_name]['user']
-        self.pwd = config[config_name]['pwd']
-        self.db_name = config[config_name]['database']
+        self.user = config[config_name]['username']
+        self.pwd = config[config_name]['password']
+        self.db_name = config[config_name]['db_name']
         self.uri = 'postgresql+psycopg2://{user}:{pwd}@{host}/{db_name}'
         self.uri = self.uri.format(user=self.user, pwd=self.pwd, host=self.host, db_name=self.db_name)
 
@@ -55,7 +59,7 @@ class PostgresDatabase(Database):
         connection_str = "host='{}' dbname='{}' user='{}' password='{}'".format(self.host, self.db_name, self.user, self.pwd)
         self.connection = psycopg2.connect(connection_str)
         self.cursor = self.connection.cursor()
-        self.dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        #self.dict_cursor = self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     def execute_query(self, query):
         self.cursor.execute(query)
@@ -131,15 +135,15 @@ class SceTable(DBTable):
 
     def delete_by_timestamp(self, timestamp):
         query = 'DELETE FROM {table_name} ' \
-                'WHERE timestamp = ?'
-        query = query.format(table_name=self.table_name)
+                'WHERE timestamp = {placeholder}'
+        query = query.format(table_name=self.table_name, placeholder=self.database.placeholder)
         timestamp = str(timestamp)
         self.database.cursor.execute(query, (timestamp,))
 
     def insert_record(self, timestamp, power):
         timestamp = str(timestamp)
-        query = 'INSERT INTO {table_name} (timestamp, power) VALUES (?,?)'
-        query = query.format(table_name=self.table_name)
+        query = 'INSERT INTO {table_name} (timestamp, power) VALUES ({placeholder}, {placeholder})'
+        query = query.format(table_name=self.table_name, placeholder=self.database.placeholder)
         self.database.cursor.execute(query, (timestamp, power))
 
     def latest_entry(self):
@@ -147,8 +151,8 @@ class SceTable(DBTable):
         query = query.format(table_name=self.table_name)
         self.database.cursor.execute(query)
         ret = self.database.cursor.fetchone()
-        latest_entry = datetime.datetime.strptime(ret[0], '%Y-%m-%d %H:%M:%S')
-        return latest_entry
+        #latest_entry = datetime.datetime.strptime(ret[0], '%Y-%m-%d %H:%M:%S')
+        return ret
     
     def earliest_entry(self):
         query = 'SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1'
@@ -163,7 +167,7 @@ class SceTable(DBTable):
                 (SELECT avg(power) as p FROM sce 
                 WHERE timestamp >= '{start}'
                 AND timestamp <= '{end}'
-                GROUP BY STRFTIME('%Y%m%d%H', timestamp))"""
+                GROUP BY to_char(timestamp, 'YYYY-MM-DD HH24')) a"""
         query = query.format(start=start, end=end)        
         self.database.cursor.execute(query)
         ret = self.database.cursor.fetchone()        
@@ -205,12 +209,12 @@ class SceTable(DBTable):
             max_date = self.latest_entry()
         if min_date is None:
             min_date = self.earliest_entry()
-        query = 'SELECT STRFTIME(\'%Y\', timestamp) || \'-\' || STRFTIME(\'%W\', timestamp) AS week, sum(power) as power ' \
+        query = 'SELECT to_char(timestamp, \'IYYY-IW\') AS week, sum(power) as power ' \
                 'FROM {table_name} ' \
                 'WHERE timestamp >= "{min_date}" ' \
                 'AND timestamp <= "{max_date}" ' \
-                'GROUP BY STRFTIME(\'%Y\', timestamp)  || \'-\' || STRFTIME(\'%W\', timestamp) ' \
-                'ORDER BY STRFTIME(\'%Y\', timestamp)  || \'-\' || STRFTIME(\'%W\', timestamp) '
+                'GROUP BY to_char(timestamp, \'IYYY-IW\')' \
+                'ORDER BY to_char(timestamp, \'IYYY-IW\') '
         query = query.format(max_date=max_date, min_date=min_date, table_name=self.table_name)
         df = pandas.read_sql(sql=query, con=self.database.uri, index_col='week')
         return df
@@ -303,7 +307,7 @@ class SceTable(DBTable):
 
 
 class SolarTable(SceTable):
-    table_name = 'power'
+    table_name = 'pv_realtime'
     
     def to_quarterhour_dataframe(self, min_date=None, max_date=None):
         query = ''' SELECT 
@@ -326,7 +330,7 @@ class SolarTable(SceTable):
                             WHEN 0 THEN 0.04 
                             ELSE solar
                         END AS self_cons
-                    FROM merged_quarterhour)"""
+                    FROM merged_quarterhour) a"""
         return self.get_value(query)
         
     def latest(self):

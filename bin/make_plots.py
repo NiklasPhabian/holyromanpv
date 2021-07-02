@@ -28,25 +28,24 @@ def prod_plot(n_days=7):
             WHERE timestamp > '{start}'
             ORDER BY timestamp'''
     query = query.format(start=start)
-    solar_power = pandas.read_sql(sql=query, con=db.engine, 
-                              parse_dates='timestamp',
-                              index_col='timestamp')    
+    solar_power = pandas.read_sql(sql=query, con=db.engine, parse_dates='timestamp', index_col='timestamp')    
     plot = plots.Plot()
-    plot.plot_pandas(solar_power['power'])    
+    plot.plot_pandas(solar_power['power'])
     plot.y_label('Power \n in W')
     plot.save_fig(www_folder + 'production.svg')
-    
-    
+
+
 def day_plot(n_days=7):
-    plot = plots.Plot()    
+    plot = plots.Plot()
     sql = 'SELECT * FROM day ORDER BY timestamp;'
     days = pandas.read_sql(sql=sql, con=db.engine, 
                            parse_dates='timestamp',
                            index_col='timestamp')        
     plot.plot_pandas(days['energy'])
-    
+
     plot.y_label('Energy \n in kWh')
     plot.set_monthly_ticks()
+    plot.rotate_ticks(90)
     plot.save_fig(www_folder + 'days.svg')
     
 def month_plot():
