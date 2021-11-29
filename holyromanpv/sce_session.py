@@ -37,11 +37,13 @@ class SCESession:
                 
     def login(self):
         self.driver.get('http://www.sce.com/mysce/login')
-        username_field = self.driver.find_element_by_id('userIDorEmail')
+        #username_field = self.driver.find_element_by_id('userIDorEmail')        
         #username_field = self.driver.find_element_by_id('user ID or Email')
-        password_field = self.driver.find_element_by_id('passwordLogin')
-        username_field.clear()
-        password_field.clear()        
+        username_field = self.driver.find_elements_by_id('userName')[1]
+        #password_field = self.driver.find_element_by_id('passwordLogin')
+        password_field = self.driver.find_elements_by_id('password')[1]
+        #username_field.clear()
+        #password_field.clear()        
         username_field.send_keys(self.username)
         password_field.send_keys(self.password)        
         time.sleep(1)        

@@ -5,7 +5,7 @@ import datetime
 import os
 
 home = os.path.expanduser("~")
-config_loc = home + '/Dropbox/projects/holyromanpv/data/config.ini'
+config_loc = home + '/holyromanpv/data/config.ini'
 config_file = holyromanpv.config.get_config(config_loc)
 
 #db_path = config_file['sqlite']['dbpath']
